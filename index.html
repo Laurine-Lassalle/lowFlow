@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Streamflow Gauge Map</title>
+
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.14.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.14.0/mapbox-gl.css" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      width: 100%;
+      height: 93%;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+    }
+
+    h2 {
+      margin: 10px;
+      font-size: 16px;
+      text-align: left;
+    }
+
+    p {
+      line-height: 12px;
+      font-size: 10px;
+    }
+
+    .map-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      margin-left: 20px;
+      font-family: Arial, sans-serif;
+      overflow: auto;
+      border-radius: 3px;
+      height: 100%;
+    }
+
+    #features {
+      top: 0;
+      background: #fff;
+      height: 40px;
+      min-height: 40px;
+      margin-top: 20px;
+      width: auto;
+    }
+
+    .mapboxgl-popup-content {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      width: 300px;
+      max-height: 300px;
+    }
+
+    .popup-title {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .popup-flow {
+      font-size: 12px;
+    }
+
+    .popup-image {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 150px;
+      object-fit: contain;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      margin-bottom: 8px;
+    }
+
+    .popup-link {
+      font-size: 12px;
+      color: #286090;
+      text-decoration: underline;
+    }
+
+    #note {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 5%;
+      margin-bottom: 10px;
+      margin-left: 20px;
+      padding: 5px;
+      font-family: Arial, sans-serif;
+      line-height: 13px;
+      font-size: 10px;
+      color: gray;
+    }
+    
+
+    #legend {
+      position: absolute;
+      bottom: 13%;
+      left: 15px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px 12px;
+      border-radius: 4px;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      z-index: 1;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin: 5px 0;
+    }
+
+    .legend-circle,
+    .legend-square {
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .legend-circle {
+      border-radius: 50%;
+      width: 15px;
+      height: 15px;
+      background: #ec0909;
+      margin-right: 8px;
+    }
+
+    .legend-square {
+      border-radius: 0;
+      width: 10px;
+      height: 10px;
+      margin-left: 2px;
+      background: #0a6fc2;
+      margin-right: 11px;
+    }
+    
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+  
+  <div class="map-overlay" id="features">
+    <h2>
+      <center>Western Slope stream gauges that reported the lowest cumulative streamflow in WY 2026</center>
+    </h2>
+  </div>
+  
+  <div id="legend">
+    <div class="legend-item">
+      <span class="legend-circle"></span>
+      Studied gauges
+    </div>
+    <div class="legend-item">
+      <span class="legend-square"></span>
+      Other gauges
+    </div>
+  </div>
+
+  <div id="note">
+    <p>Source: USGS <br>Credit: Laurine Lassalle - Aspen Journalism</p>
+  </div>
+
+  <script>
+
+    mapboxgl.accessToken = 'pk.eyJ1IjoibGF1cmluZS1haiIsImEiOiJja3ByZDBnYjMwNGYzMnZwbWhmMGJrcTZhIn0.xZkfTBy8vho1jNUvbxRMMg';
+
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/laurine-aj/cmw60b3w500de01q20hi8clb7',
+      center: [-107.4, 39.6],
+      zoom: 7.6
+    });
+
+    map.addControl(new mapboxgl.NavigationControl());
+
+    const studiedLayer = 'studied gauges';
+    const otherLayer = 'other gauges';
+
+    const gaugeLayers = [studiedLayer, otherLayer];
+
+    // POPUP FUNCTION
+
+    let popup = null;
+    map.on('mouseenter', gaugeLayers, function(e) {
+
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: gaugeLayers
+      });
+
+      if (!features.length) return;
+
+      const feature = features[0];
+      const properties = feature.properties;
+
+      console.log("Flow raw value:", properties.cumulative_flow_af);
+      console.log("All properties:", properties);
+      console.log("Flow type:", typeof properties.cumulative_flow_af);
+
+      const isStudied = feature.layer.id === studiedLayer;
+
+      // Create popup content
+      const popupContent = document.createElement('div');
+
+      const title = document.createElement('div');
+      title.className = 'popup-title';
+      title.textContent = properties.station_nm || 'Unnamed gauge';
+
+      popupContent.appendChild(title);
+
+      // Period of record
+
+      if (properties.PeriodOfRecord) {
+        const period = document.createElement('div');
+        period.className = 'popup-period';
+        period.innerHTML = 'Period of record: <strong>' + properties.PeriodOfRecord + '</strong>';
+        popupContent.appendChild(period);
+      }
+
+      // Streamflow
+      const rawFlow = properties.cumulative_flow_af;
+
+      const flow = document.createElement('div');
+      flow.className = 'popup-flow';
+
+      const numericFlow = parseFloat(
+        String(rawFlow ?? '').replace(/,/g, '').trim()
+      );
+
+      flow.innerHTML =
+        '2026 cumulative streamflow: <strong>' +
+        (Number.isFinite(numericFlow) ?
+          numericFlow.toLocaleString('en-US', {
+            maximumFractionDigits: 1
+          }) + ' acre-feet' :
+          'N/A') +
+        '</strong>';
+
+      popupContent.appendChild(flow);
+
+      // Additional information for studied gauges only
+      if (isStudied) {
+
+        // Image
+        if (properties.image) {
+
+          const image = document.createElement('img');
+          image.className = 'popup-image';
+
+          // Extract image URL from HTML stored in CSV
+          const match = properties.image.match(/src=["']([^"']+)["']/i);
+
+          if (match) {
+            image.src = match[1];
+            image.alt = properties.station_nm || 'Gauge image';
+            popupContent.appendChild(image);
+          }
+        }
+
+        // Link
+        if (properties.link) {
+          try {
+            const url = new URL(properties.link.match(/href="([^"]+)"/)[1]);
+
+            if (url.protocol === 'https:' || url.protocol === 'http:') {
+              const link = document.createElement('a');
+              link.className = 'popup-link';
+              link.href = url.href;
+              link.target = '_blank';
+              link.rel = 'noopener noreferrer';
+              link.textContent = 'More information';
+
+              popupContent.appendChild(link);
+            }
+          } catch (error) {
+            // Ignore invalid URLs
+          }
+        }
+      }
+
+      // Display popup
+      if (popup) {
+        popup.remove();
+      }
+
+      popup = new mapboxgl.Popup()
+        .setLngLat(feature.geometry.coordinates)
+        .setDOMContent(popupContent)
+        .addTo(map);
+    });
+
+    // CURSOR EFFECT
+
+    map.on('mouseenter', gaugeLayers, function() {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+
+    map.on('mouseleave', gaugeLayers, function() {
+      map.getCanvas().style.cursor = '';
+    });
+  </script>
+
+
+</body>
+
+</html>
