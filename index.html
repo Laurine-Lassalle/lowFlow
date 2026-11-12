@@ -23,7 +23,7 @@
       top: 0;
       bottom: 0;
     }
-
+    
     h2 {
       margin: 10px;
       font-size: 19px;
@@ -50,8 +50,7 @@
       top: 0;
       background: #fff;
       height: 40px;
-      min-height: 40px;
-      margin-top: 20px;
+      margin-top: 10px;
       width: auto;
     }
 
@@ -145,6 +144,48 @@
       background: #0a6fc2;
       margin-right: 11px;
     }
+    
+        @media (max-width: 850px) {
+    #features {
+        width: calc(100% - 40px);
+        margin-top: 10px;
+        box-sizing: border-box;
+    }
+
+    h2 {
+        font-size: 16px;
+        margin: 8px;
+    }
+}
+    
+    @media (max-width: 740px) {
+    #features {
+        width: calc(100% - 40px);
+        height: auto;
+        max-height: 50px;
+        margin-top: 10px;
+        box-sizing: border-box;
+    }
+
+    h2 {
+        font-size: 16px;
+        margin: 8px;
+    }
+}
+     @media (max-width: 700px) {
+        #features {
+        width: calc(100% - 40px);
+        height: auto;
+        max-height: 50px;
+        margin-top: 10px;
+        box-sizing: border-box;
+    }
+
+    h2 {
+        font-size: 15px;
+        margin: 8px;
+    }
+}
     
   </style>
 </head>
@@ -291,16 +332,24 @@
       }
 
       // Display popup
-      if (popup) {
+        if (popup) {
         popup.remove();
-      }
+        }
 
-      popup = new mapboxgl.Popup()
+        const popupAbove = ['9070000', '9085000'];
+
+        const popupOptions = popupAbove.includes(String(properties.site_no))
+        ? { anchor: 'top' }
+        : {};
+
+
+
+        popup = new mapboxgl.Popup(popupOptions)
         .setLngLat(feature.geometry.coordinates)
         .setDOMContent(popupContent)
         .addTo(map);
-    });
-
+        });
+    
     // CURSOR EFFECT
 
     map.on('mouseenter', gaugeLayers, function() {
