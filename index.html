@@ -14,44 +14,28 @@
     body {
       margin: 0;
       padding: 0;
+      
     }
-
-    #map {
+    
+   #map {
       width: 100%;
-      height: 93%;
+      height: 87%;
       position: absolute;
-      top: 0;
-      bottom: 0;
+      top: 40px;
     }
     
     h2 {
       margin: 10px;
       font-size: 19px;
       text-align: left;
+      font-family: Arial, sans-serif;
+      overflow: auto;
+      
     }
 
     p {
       line-height: 12px;
       font-size: 10px;
-    }
-
-    .map-overlay {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      margin-left: 20px;
-      font-family: Arial, sans-serif;
-      overflow: auto;
-      border-radius: 3px;
-      height: 100%;
-    }
-
-    #features {
-      top: 0;
-      background: #fff;
-      height: 40px;
-      margin-top: 10px;
-      width: auto;
     }
 
     .mapboxgl-popup-content {
@@ -89,20 +73,24 @@
     }
 
     #note {
-      position: fixed;
+      position: absolute;
       bottom: 0;
       left: 0;
       width: 100%;
-      height: 5%;
-      margin-bottom: 10px;
-      margin-left: 20px;
+      height: 5vh;
       padding: 5px;
       font-family: Arial, sans-serif;
       line-height: 13px;
       font-size: 10px;
       color: gray;
+      background: white;
     }
     
+    #note p {
+    transform: translateY(-10px);
+     margin-bottom: 15px;
+    margin-left: 20px;
+}
 
     #legend {
       position: absolute;
@@ -145,42 +133,14 @@
       margin-right: 11px;
     }
     
-        @media (max-width: 850px) {
-    #features {
-        width: calc(100% - 40px);
-        margin-top: 10px;
-        box-sizing: border-box;
-    }
-
+ @media (max-width: 850px){
     h2 {
         font-size: 16px;
         margin: 8px;
     }
 }
     
-    @media (max-width: 740px) {
-    #features {
-        width: calc(100% - 40px);
-        height: auto;
-        max-height: 50px;
-        margin-top: 10px;
-        box-sizing: border-box;
-    }
-
-    h2 {
-        font-size: 16px;
-        margin: 8px;
-    }
-}
-     @media (max-width: 700px) {
-        #features {
-        width: calc(100% - 40px);
-        height: auto;
-        max-height: 50px;
-        margin-top: 10px;
-        box-sizing: border-box;
-    }
-
+@media (max-width: 700px) {
     h2 {
         font-size: 15px;
         margin: 8px;
@@ -191,13 +151,12 @@
 </head>
 
 <body>
-  <div id="map"></div>
-  
-  <div class="map-overlay" id="features">
+  <div>
     <h2>
       <center>Western Slope stream gauges that reported the lowest cumulative streamflow in WY 2026</center>
     </h2>
   </div>
+  <div id="map"></div>
   
   <div id="legend">
     <div class="legend-item">
@@ -336,20 +295,12 @@
         popup.remove();
         }
 
-        const popupAbove = ['9070000', '9085000'];
-
-        const popupOptions = popupAbove.includes(String(properties.site_no))
-        ? { anchor: 'top' }
-        : {};
-
-
-
-        popup = new mapboxgl.Popup(popupOptions)
+         popup = new mapboxgl.Popup()
         .setLngLat(feature.geometry.coordinates)
         .setDOMContent(popupContent)
         .addTo(map);
         });
-    
+
     // CURSOR EFFECT
 
     map.on('mouseenter', gaugeLayers, function() {
